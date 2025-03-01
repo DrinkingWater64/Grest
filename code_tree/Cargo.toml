@@ -1,0 +1,10 @@
+[package]
+name = "code_tree"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "A tool to generate directory tree and concatenate code files"
+
+
+[dependencies]
+walkdir = "2.3.3"    # For directory traversal
