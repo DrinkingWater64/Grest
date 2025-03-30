@@ -42,6 +42,7 @@ code_tree .
 ```bash
 # Run the CLI tool with optional arguments:
 code_tree --[OPTIONS]
+```
 ### Options
 | Option              | Short | Default Value | Description |
 |---------------------|-------|--------------|-------------|
