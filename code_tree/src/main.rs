@@ -1,7 +1,7 @@
 use std::{
     fs::{self, File},
     io::{self, Write},
-    path::{Path, PathBuf},
+    path::PathBuf,
 };
 use walkdir::WalkDir;
 use clap::{Parser, ArgAction};
