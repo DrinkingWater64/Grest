@@ -39,3 +39,5 @@ code_tree /path/to/directory
 code_tree .
 
 
+The result will be stored in "Code_output.txt" in root project.
+
