@@ -2,9 +2,16 @@
 name = "code_tree"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Abdullah Al Muti <aamuti64@gmail.com>"]
 description = "A tool to generate directory tree and concatenate code files"
-
+license = "MIT"
+keywords = ["directory-tree", "code-concatenation", "filesystem"]
+categories = ["command-line-utilities", "filesystem"]
 
 [dependencies]
 walkdir = "2.3.3"    # For directory traversal
+clap = { version = "4.4", features = ["derive"] }
+
+[[bin]]
+name = "code_tree"
+path = "src/main.rs"
