@@ -1,3 +1,20 @@
+Directory Tree and Code Contents
+
+Root Directory: .
+
+├── 
+    ├── .gitignore
+    ├── Cargo.lock
+    ├── Cargo.toml
+    ├── code_output.txt
+    ├── src
+        ├── main.rs
+
+Code Contents:
+
+
+=== File: .\src\main.rs ===
+
 use std::{
     fs::{self, File},
     io::{self, Write},
