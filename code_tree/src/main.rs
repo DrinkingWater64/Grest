@@ -5,6 +5,7 @@ use std::{
 };
 use walkdir::WalkDir;
 use clap::{Parser, ArgAction};
+use indicatif::{ProgressBar, ProgressStyle};
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -50,39 +51,59 @@ impl Config {
     }
 }
 
-fn process_directory(config: &Config) -> io::Result<()> {
-    println!("Creating output file at: {}", config.output_file.display());
-    let mut output = File::create(&config.output_file)?;
-    
-    println!("Processing directory: {}", config.root_path.display());
-    
-    writeln!(output, "Directory Tree and Code Contents\n")?;
-    writeln!(output, "Root Directory: {}\n", config.root_path.display())?;
-    
-    println!("Generating directory tree...");
-    write_directory_tree(&config.root_path, &mut output, &config)?;
-    writeln!(output, "\nCode Contents:\n")?;
-    
-    println!("Writing file contents...");
-    write_file_contents(&config.root_path, &mut output, &config)?;
-    
-    println!("Processing complete!");
-    Ok(())
+fn count_total_files(config: &Config) -> io::Result<(usize, usize)> {
+    let mut total_files = 0;
+    let mut code_files = 0;
+
+    for entry in WalkDir::new(&config.root_path)
+        .into_iter()
+        .filter_entry(|e| !is_ignored(e, &config.ignored_dirs))
+    {
+        let entry = entry?;
+        if entry.file_type().is_file() {
+            total_files += 1;
+            
+            if let Some(extension) = entry.path().extension() {
+                if config.allowed_extensions.contains(&extension.to_string_lossy().to_string()) {
+                    code_files += 1;
+                }
+            }
+        }
+    }
+
+    Ok((total_files, code_files))
 }
 
-fn write_directory_tree(
-    root: &Path,
-    output: &mut File,
-    config: &Config,
-) -> io::Result<()> {
-    println!("Starting directory tree generation...");
-    for entry in WalkDir::new(root)
+fn process_directory(config: &Config) -> io::Result<()> {
+    // Count total files first
+    let (total_files, code_files) = count_total_files(config)?;
+
+    // Create progress bar
+    let pb = ProgressBar::new(total_files as u64);
+    pb.set_style(ProgressStyle::default_bar()
+        .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {pos}/{len} files ({eta})")
+        .unwrap()
+        .progress_chars("#>-"));
+
+    // Create output file
+    let mut output = File::create(&config.output_file)?;
+    
+    if config.verbose {
+        println!("Total files: {}, Code files: {}", total_files, code_files);
+    }
+
+    writeln!(output, "Directory Tree and Code Contents\n")?;
+    writeln!(output, "Root Directory: {}\n", config.root_path.display())?;
+    writeln!(output, "Total Files: {}\n", total_files)?;
+    writeln!(output, "Code Files: {}\n", code_files)?;
+
+    // Generate directory tree
+    for entry in WalkDir::new(&config.root_path)
         .into_iter()
         .filter_entry(|e| !is_ignored(e, &config.ignored_dirs))
     {
         let entry = entry?;
         let path = entry.path();
-        println!("Processing path: {}", path.display());
         
         let depth = entry.depth();
         let prefix = "    ".repeat(depth);
@@ -93,17 +114,11 @@ fn write_directory_tree(
             
         writeln!(output, "{}{}{}", prefix, "├── ", name)?;
     }
-    println!("Directory tree generation complete!");
-    Ok(())
-}
 
-fn write_file_contents(
-    root: &Path,
-    output: &mut File,
-    config: &Config,
-) -> io::Result<()> {
-    println!("Starting file content writing...");
-    for entry in WalkDir::new(root)
+    writeln!(output, "\nCode Contents:\n")?;
+
+    // Process code files
+    for entry in WalkDir::new(&config.root_path)
         .into_iter()
         .filter_entry(|e| !is_ignored(e, &config.ignored_dirs))
     {
@@ -112,28 +127,29 @@ fn write_file_contents(
             continue;
         }
 
+        pb.inc(1);
+
         let path = entry.path();
-        println!("Checking file: {}", path.display());
         
         if let Some(extension) = path.extension() {
             if config.allowed_extensions.contains(&extension.to_string_lossy().to_string()) {
-                println!("Processing code file: {}", path.display());
                 writeln!(output, "\n=== File: {} ===\n", path.display())?;
                 
                 match fs::read_to_string(path) {
                     Ok(contents) => {
                         writeln!(output, "{}", contents)?;
-                        println!("Successfully wrote contents of: {}", path.display());
                     }
                     Err(e) => {
-                        println!("Error reading file {}: {}", path.display(), e);
                         writeln!(output, "Error reading file: {}", e)?;
                     }
                 }
             }
         }
     }
-    println!("File content writing complete!");
+
+    pb.finish_with_message("Scan complete");
+    
+    println!("Successfully generated code output at: {}", config.output_file.display());
     Ok(())
 }
 
@@ -157,14 +173,5 @@ fn main() -> io::Result<()> {
         println!("Allowed extensions: {:?}", config.allowed_extensions);
     }
     
-    match process_directory(&config) {
-        Ok(()) => {
-            println!("Successfully generated code output at: {}", config.output_file.display());
-            Ok(())
-        }
-        Err(e) => {
-            eprintln!("Error processing directory: {}", e);
-            Err(e)
-        }
-    }
+    process_directory(&config)
 }
