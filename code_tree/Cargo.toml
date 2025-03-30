@@ -5,8 +5,9 @@ edition = "2021"
 authors = ["Abdullah Al Muti <aamuti64@gmail.com>"]
 description = "A tool to generate directory tree and concatenate code files"
 license = "MIT"
-keywords = ["directory-tree", "code-concatenation", "filesystem"]
-categories = ["command-line-utilities", "filesystem"]
+repository = "https://github.com/DrinkingWater64/code_tree"
+keywords = ["cli", "code", "analysis", "tool"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 walkdir = "2.3.3"    # For directory traversal
@@ -16,3 +17,9 @@ indicatif = "0.17.3"
 [[bin]]
 name = "code_tree"
 path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

@@ -37,7 +37,35 @@ code_tree /path/to/directory
 
 # Analyze current directory
 code_tree .
+```
+## Usage
+```bash
+# Run the CLI tool with optional arguments:
+code_tree --[OPTIONS]
+### Options
+| Option              | Short | Default Value | Description |
+|---------------------|-------|--------------|-------------|
+| `--root-path`      | `-r`  | `.`          | Root directory to analyze |
+| `--output`         | `-o`  | `code_output.txt` | Output file path |
+| `--ignored-dirs`   | `-i`  | `.git,node_modules,target,.idea,venv,bin,obj,Debug,Release` | Comma-separated directories to ignore |
+| `--extensions`     | `-e`  | `rs,js,py,cpp,c,java,go,ts,cs,csproj,sln,cshtml,razor,json,xml,config,yml,yaml` | File extensions to include |
+| `--verbose`        | `-v`  | `false`      | Enable verbose output |
 
+### Example Usage
+Scan the current directory and save output to `result.txt`:
+```sh
+./cli_tool -o result.txt
+```
+
+Scan a specific directory while ignoring additional folders:
+```sh
+./cli_tool -r /path/to/project -i .git,node_modules,dist
+```
 
 The result will be stored in "Code_output.txt" in root project.
 
+## Contributing
+Feel free to open issues and submit pull requests!
+
+## License
+This project is licensed under the MIT License.
